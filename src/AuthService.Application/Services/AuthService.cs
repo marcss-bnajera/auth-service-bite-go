@@ -77,11 +77,15 @@ public class AuthService(
         var userEmailId = UuidGenerator.GenerateUserId();
         var userRoleId = UuidGenerator.GenerateUserId();
 
-        // Obtener el rol por defecto (USER_ROLE)
-        var defaultRole = await roleRepository.GetByNameAsync(RoleConstants.USER_ROLE);
+        // Obtener el rol: si se envió RoleName y es válido se usa ese, si no se usa Cliente por defecto
+        var roleName = !string.IsNullOrWhiteSpace(registerDto.RoleName) && RoleConstants.AllowedRoles.Contains(registerDto.RoleName)
+            ? registerDto.RoleName
+            : RoleConstants.USER_ROLE;
+
+        var defaultRole = await roleRepository.GetByNameAsync(roleName);
         if (defaultRole == null)
         {
-            throw new InvalidOperationException($"Default role '{RoleConstants.USER_ROLE}' not found. Ensure seeding runs before registration.");
+            throw new InvalidOperationException($"Role '{roleName}' not found. Ensure seeding runs before registration.");
         }
 
         var user = new User
@@ -92,7 +96,8 @@ public class AuthService(
             Username = registerDto.Username,
             Email = registerDto.Email.ToLowerInvariant(),
             Password = passwordHashService.HashPassword(registerDto.Password),
-            Status = false,
+            // Si fue registrado por un admin (tiene rol distinto a Cliente), se activa directo
+            Status = roleName != RoleConstants.USER_ROLE,
             UserProfile = new UserProfile
             {
                 Id = userProfileId,
@@ -104,9 +109,9 @@ public class AuthService(
             {
                 Id = userEmailId,
                 UserId = userId,
-                EmailVerified = false,
-                EmailVerificationToken = emailVerificationToken,
-                EmailVerificationTokenExpiry = DateTime.UtcNow.AddHours(24)
+                EmailVerified = roleName != RoleConstants.USER_ROLE,
+                EmailVerificationToken = roleName != RoleConstants.USER_ROLE ? null : emailVerificationToken,
+                EmailVerificationTokenExpiry = roleName != RoleConstants.USER_ROLE ? null : DateTime.UtcNow.AddHours(24)
             },
             UserRoles =
             [
