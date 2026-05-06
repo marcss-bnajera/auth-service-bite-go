@@ -29,4 +29,7 @@ public class RegisterDto
     public string Phone { get; set; } = string.Empty;
 
     public IFileData? ProfilePicture { get; set; }
+
+    // Rol opcional - si no se envía, se asigna Cliente por defecto
+    public string? RoleName { get; set; }
 }
