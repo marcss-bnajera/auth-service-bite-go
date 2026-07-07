@@ -32,7 +32,10 @@ public class JwtTokenService(IConfiguration configuration) : IJwtTokenService
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
             new Claim("role", role),
             new Claim("email", user.Email ?? ""),
-            new Claim("email_verified", (user.UserEmail?.EmailVerified ?? false).ToString().ToLower())
+            new Claim("email_verified", (user.UserEmail?.EmailVerified ?? false).ToString().ToLower()),
+            new Claim("name", user.Name ?? ""),
+            new Claim("surname", user.Surname ?? ""),
+            new Claim("username", user.Username ?? "")
         };
 
         var token = new JwtSecurityToken(
