@@ -14,6 +14,7 @@ public class RegisterDto
     public string Surname { get; set; } = string.Empty;
 
     [Required]
+    [MaxLength(50)]
     public string Username { get; set; } = string.Empty;
 
     [Required]

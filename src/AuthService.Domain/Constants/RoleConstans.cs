@@ -11,6 +11,7 @@ public static class RoleConstants
     public const string ADMIN_RESTAURANTE = "Admin_Restaurante";
     public const string MESERO = "Mesero";
     public const string COCINERO = "Cocinero";
+    public const string REPARTIDOR = "Repartidor";
     public const string CLIENTE = "Cliente";
 
     public static readonly string[] AllowedRoles =
@@ -19,6 +20,7 @@ public static class RoleConstants
         ADMIN_RESTAURANTE,
         MESERO,
         COCINERO,
+        REPARTIDOR,
         CLIENTE
     ];
 

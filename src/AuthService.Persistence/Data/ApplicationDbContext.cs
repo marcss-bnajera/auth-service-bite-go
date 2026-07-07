@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
     
+        // Renombrar tablas y columnas a snake_case
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             var tableName = entity.GetTableName();
@@ -40,12 +41,12 @@ public class ApplicationDbContext : DbContext
                     property.SetColumnName(ToSnakeCase(columnName));
                 }
             }
-    
-            modelBuilder.Entity<User>(entity =>
-            {
+        }
 
+        // Configuraciones de entidades (fuera del foreach)
+        modelBuilder.Entity<User>(entity =>
+        {
             entity.HasKey(e => e.Id);
-
             entity.HasIndex(e => e.Email).IsUnique();
             entity.HasIndex(e => e.Username).IsUnique();
 
@@ -68,20 +69,19 @@ public class ApplicationDbContext : DbContext
                 .WithOne(upr => upr.User)
                 .HasForeignKey<UserPasswordReset>(upr => upr.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            });
+        });
 
-            modelBuilder.Entity<UserRole>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.RoleId }).IsUnique();
-            });
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => new { e.UserId, e.RoleId }).IsUnique();
+        });
 
-            modelBuilder.Entity<Role>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Name).IsUnique();
-            });
-        }
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Name).IsUnique();
+        });
     }
     
     private static string ToSnakeCase(string input)

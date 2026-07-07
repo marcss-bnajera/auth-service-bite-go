@@ -53,10 +53,10 @@ public class EmailService(IConfiguration configuration, ILogger<EmailService> lo
 
     public async Task SendWelcomeEmailAsync(string email, string username)
     {
-        var subject = "Welcome to AuthDotnet!";
+        var subject = "Welcome to Bite&Go!";
 
         var body = $@"
-            <h2>Welcome to AuthDotnet, {username}!</h2>
+            <h2>Welcome to Bite&amp;Go, {username}!</h2>
             <p>Your account has been successfully verified and activated.</p>
             <p>You can now enjoy all the features of our platform.</p>
             <p>If you have any questions, feel free to contact our support team.</p>
@@ -102,10 +102,6 @@ public class EmailService(IConfiguration configuration, ILogger<EmailService> lo
             var timeoutMs = int.Parse(smtpSettings["Timeout"] ?? "30000");
             client.Timeout = timeoutMs;
 
-            // FIX: Bypass SSL (Cloudinary, etc.)
-            client.CheckCertificateRevocation = false;
-            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
-
             try
             {
 
@@ -131,7 +127,7 @@ public class EmailService(IConfiguration configuration, ILogger<EmailService> lo
 
                 // Crear mensaje con MimeKit
                 var message = new MimeMessage();
-                message.From.Add(new MailboxAddress(fromName ?? "Auth System", fromEmail ?? "noreply@auth.com"));
+                message.From.Add(new MailboxAddress(fromName ?? "Bite&Go", fromEmail ?? "noreply@bitego.com"));
                 message.To.Add(new MailboxAddress("", to));
                 message.Subject = subject;
                 message.Body = new TextPart("html") { Text = body };

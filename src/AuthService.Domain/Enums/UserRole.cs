@@ -12,5 +12,6 @@ public enum UserRole
     Mesero = 1,
     Cocinero = 2,
     AdminRestaurante = 3,
-    SuperAdmin = 4
+    SuperAdmin = 4,
+    Repartidor = 5
 }

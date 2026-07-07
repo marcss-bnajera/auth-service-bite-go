@@ -54,10 +54,10 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.UserEmail != null &&
-                                     u.UserEmail.EmailVerificationToken == token);
+                                     u.UserEmail.EmailVerificationToken == token &&
+                                     u.UserEmail.EmailVerificationTokenExpiry >= DateTime.UtcNow);
     }
 
-    // 5. Busca un usuario mediante su token de restablecimiento de contraseña
     public async Task<User?> GetByPasswordResetTokenAsync(string token)
     {
         return await context.Users
@@ -67,7 +67,8 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.UserPasswordReset != null &&
-                                     u.UserPasswordReset.PasswordResetToken == token);
+                                     u.UserPasswordReset.PasswordResetToken == token &&
+                                     u.UserPasswordReset.PasswordResetTokenExpiry >= DateTime.UtcNow);
     }
 
     // 6. Crea un nuevo registro de usuario en la BD y lo retorna con sus relaciones
@@ -117,7 +118,7 @@ public class UserRepository(ApplicationDbContext context) : IUserRepository
 
         var newUserRole = new UserRole
         {
-            Id = UuidGenerator.GenerateUserId(),
+            Id = UuidGenerator.GenerateRoleId(),
             UserId = userId,
             RoleId = roleId,
             CreatedAt = DateTime.UtcNow,

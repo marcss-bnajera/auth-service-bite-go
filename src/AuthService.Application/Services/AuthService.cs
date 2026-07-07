@@ -77,10 +77,8 @@ public class AuthService(
         var userEmailId = UuidGenerator.GenerateUserId();
         var userRoleId = UuidGenerator.GenerateUserId();
 
-        // Obtener el rol: si se envió RoleName y es válido se usa ese, si no se usa Cliente por defecto
-        var roleName = !string.IsNullOrWhiteSpace(registerDto.RoleName) && RoleConstants.AllowedRoles.Contains(registerDto.RoleName)
-            ? registerDto.RoleName
-            : RoleConstants.USER_ROLE;
+        // Registro público siempre asigna rol Cliente (ignorar RoleName del DTO)
+        var roleName = RoleConstants.USER_ROLE;
 
         var defaultRole = await roleRepository.GetByNameAsync(roleName);
         if (defaultRole == null)
@@ -188,6 +186,12 @@ public class AuthService(
         {
             logger.LogFailedLoginAttempt();
             throw new UnauthorizedAccessException("Invalid credentials");
+        }
+
+        // Verificar que el email esté verificado
+        if (user.UserEmail != null && !user.UserEmail.EmailVerified)
+        {
+            throw new UnauthorizedAccessException("Email not verified. Please verify your email before logging in.");
         }
 
         logger.LogUserLoggedIn();
@@ -363,20 +367,27 @@ public class AuthService(
         else
         {
             user.UserPasswordReset.PasswordResetToken = resetToken;
-            user.UserPasswordReset.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1); // 1 hora para resetear
+            user.UserPasswordReset.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1);
         }
 
-        await userRepository.UpdateAsync(user);
-
-        // Enviar email
+        // Intentar enviar email ANTES de persistir el token
         try
         {
             await emailService.SendPasswordResetAsync(user.Email, user.Username, resetToken);
             logger.LogInformation("Password reset email sent to {Email}", user.Email);
+
+            // Solo persistir token si el email se envió exitosamente
+            await userRepository.UpdateAsync(user);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send password reset email to {Email}", user.Email);
+            return new EmailResponseDto
+            {
+                Success = false,
+                Message = "Error al enviar el email de recuperación",
+                Data = new { email = forgotPasswordDto.Email, initiated = false }
+            };
         }
 
         return new EmailResponseDto
@@ -396,7 +407,7 @@ public class AuthService(
             {
                 Success = false,
                 Message = "Token de reset inválido o expirado",
-                Data = new { token = resetPasswordDto.Token, reset = false }
+                Data = new { reset = false }
             };
         }
 

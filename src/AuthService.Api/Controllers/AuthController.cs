@@ -57,6 +57,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// <response code="400">El userId es requerido.</response>
     /// <response code="404">Usuario no encontrado.</response>
     [HttpPost("profile/by-id")]
+    [Authorize]
     [EnableRateLimiting("ApiPolicy")]
     public async Task<ActionResult<object>> GetProfileById([FromBody] GetProfileByIdDto request)
     {
@@ -200,6 +201,10 @@ public class AuthController(IAuthService authService) : ControllerBase
     public async Task<ActionResult<EmailResponseDto>> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
     {
         var result = await authService.ResetPasswordAsync(resetPasswordDto);
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
         return Ok(result);
     }
 }

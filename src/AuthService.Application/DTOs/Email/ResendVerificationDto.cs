@@ -5,5 +5,6 @@ namespace AuthService.Application.DTOs.Email;
 public class ResendVerificationDto
 {
 	[Required(ErrorMessage = "El email es obligatorio")]
+	[EmailAddress]
 	public string Email { get; set; } = string.Empty;
 }

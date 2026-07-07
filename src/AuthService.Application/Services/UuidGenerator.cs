@@ -41,7 +41,7 @@ public static class UuidGenerator
             return false;
         }
 
-        if (id.Length != 12 || !id.StartsWith("usr_"))
+        if (id.Length != 16 || !id.StartsWith("usr_"))
         {
             return false;
         }
