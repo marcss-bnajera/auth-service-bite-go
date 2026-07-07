@@ -78,6 +78,7 @@ public class CloudinaryService(IConfiguration configuration) : ICloudinaryServic
     public string GetFullImageUrl(string imagePath)
     {
         var baseUrl = configuration["CloudinarySettings:BaseUrl"] ?? "https://res.cloudinary.com/dug3apxt3/image/upload/";
+        if (!baseUrl.EndsWith('/')) baseUrl += '/';
         var folder = configuration["CloudinarySettings:Folder"] ?? "auth_service/profiles";
         var defaultPath = configuration["CloudinarySettings:DefaultAvatarPath"] ?? "default-avatar_ewzxwx.png";
 
