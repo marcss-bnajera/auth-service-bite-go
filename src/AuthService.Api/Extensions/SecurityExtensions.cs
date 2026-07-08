@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.DataProtection;
+using System.Linq;
 
 namespace AuthService.Api.Extensions;
 
@@ -16,8 +17,19 @@ public static class SecurityExtensions
         {
             options.AddPolicy("DefaultCorsPolicy", builder =>
             {
-                var allowedOrigins = configuration.GetSection("Security:AllowedOrigins").Get<string[]>()
-                    ?? DefaultAllowedOrigins;
+                var envOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGIN");
+                string[] allowedOrigins;
+
+                if (!string.IsNullOrWhiteSpace(envOrigins))
+                {
+                    allowedOrigins = envOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(o => o.Trim()).ToArray();
+                }
+                else
+                {
+                    allowedOrigins = configuration.GetSection("Security:AllowedOrigins").Get<string[]>()
+                        ?? DefaultAllowedOrigins;
+                }
 
                 builder.WithOrigins(allowedOrigins)
                        .AllowAnyHeader()
