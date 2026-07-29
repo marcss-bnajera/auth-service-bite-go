@@ -15,6 +15,10 @@ using System.Reflection;
 // iniciar, sin impacto en el rendimiento en runtime.
 DotNetEnv.Env.TraversePath().Load();
 
+// Evita el error de inotify en contenedores (Render, Docker) limitados a 128 instancias.
+// Hace que .NET use polling de archivos en vez de FileSystemWatcher.
+Environment.SetEnvironmentVariable("DOTNET_USE_POLLING_FILE_WATCHER", "1");
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, services, loggerConfiguration) =>

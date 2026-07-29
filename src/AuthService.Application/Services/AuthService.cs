@@ -438,4 +438,118 @@ public class AuthService(
 
         return MapToUserResponseDto(user);
     }
+
+    public async Task<RegisterResponseDto> AdminCreateUserAsync(AdminCreateUserDto dto)
+    {
+        if (await userRepository.ExistsByEmailAsync(dto.Email))
+        {
+            throw new BusinessException(ErrorCodes.EMAIL_ALREADY_EXISTS, "Email already exists");
+        }
+
+        if (await userRepository.ExistsByUsernameAsync(dto.Username))
+        {
+            throw new BusinessException(ErrorCodes.USERNAME_ALREADY_EXISTS, "Username already exists");
+        }
+
+        var roleName = string.IsNullOrEmpty(dto.RoleName) ? RoleConstants.USER_ROLE : dto.RoleName;
+
+        var role = await roleRepository.GetByNameAsync(roleName);
+        if (role == null)
+        {
+            throw new InvalidOperationException($"Role '{roleName}' not found.");
+        }
+
+        var userId = UuidGenerator.GenerateUserId();
+        var userProfileId = UuidGenerator.GenerateUserId();
+        var userEmailId = UuidGenerator.GenerateUserId();
+        var userRoleId = UuidGenerator.GenerateUserId();
+
+        var profilePicturePath = _cloudinaryService.GetDefaultAvatarUrl();
+
+        var user = new User
+        {
+            Id = userId,
+            Name = dto.Name,
+            Surname = dto.Surname,
+            Username = dto.Username,
+            Email = dto.Email.ToLowerInvariant(),
+            Password = passwordHashService.HashPassword(dto.Password),
+            Status = true,
+            UserProfile = new UserProfile
+            {
+                Id = userProfileId,
+                UserId = userId,
+                ProfilePicture = profilePicturePath,
+                Phone = dto.Phone
+            },
+            UserEmail = new UserEmail
+            {
+                Id = userEmailId,
+                UserId = userId,
+                EmailVerified = true,
+                EmailVerificationToken = null,
+                EmailVerificationTokenExpiry = null
+            },
+            UserRoles =
+            [
+                new Domain.Entities.UserRole
+                {
+                    Id = userRoleId,
+                    UserId = userId,
+                    RoleId = role.Id
+                }
+            ]
+        };
+
+        var createdUser = await userRepository.CreateAsync(user);
+
+        logger.LogUserRegistered(createdUser.Username);
+
+        return new RegisterResponseDto
+        {
+            Success = true,
+            User = MapToUserResponseDto(createdUser),
+            Message = "Usuario creado exitosamente por administrador.",
+            EmailVerificationRequired = false
+        };
+    }
+
+    public async Task<EmailResponseDto> AdminVerifyEmailAsync(string email)
+    {
+        var user = await userRepository.GetByEmailAsync(email.ToLowerInvariant());
+        if (user == null || user.UserEmail == null)
+        {
+            return new EmailResponseDto
+            {
+                Success = false,
+                Message = "Usuario no encontrado"
+            };
+        }
+
+        if (user.UserEmail.EmailVerified)
+        {
+            return new EmailResponseDto
+            {
+                Success = true,
+                Message = "El email ya estaba verificado",
+                Data = new { email = user.Email, verified = true }
+            };
+        }
+
+        user.UserEmail.EmailVerified = true;
+        user.Status = true;
+        user.UserEmail.EmailVerificationToken = null;
+        user.UserEmail.EmailVerificationTokenExpiry = null;
+
+        await userRepository.UpdateAsync(user);
+
+        logger.LogInformation("Admin manually verified email for user {Username}", user.Username);
+
+        return new EmailResponseDto
+        {
+            Success = true,
+            Message = "Email verificado exitosamente por administrador",
+            Data = new { email = user.Email, verified = true }
+        };
+    }
 }
