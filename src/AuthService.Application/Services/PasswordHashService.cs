@@ -10,7 +10,7 @@ public class PasswordHashService : IPasswordHashService
     private const int SaltSize = 16;
     private const int HashSize = 32;
     private const int Iterations = 2;
-    private const int Memory = 102400;
+    private const int Memory = 19456;
     private const int Parallelism = 8;
 
     public string HashPassword(string password)

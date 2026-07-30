@@ -137,7 +137,9 @@ public class EmailService(IConfiguration configuration, ILogger<EmailService> lo
 
     private async Task SendEmailAsync(string to, string subject, string body)
     {
-        var apiKey = configuration["Brevo:ApiKey"] ?? Environment.GetEnvironmentVariable("BREVO_API_KEY");
+        var apiKey = configuration["Brevo:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey))
+            apiKey = Environment.GetEnvironmentVariable("BREVO_API_KEY");
 
         if (string.IsNullOrEmpty(apiKey))
         {
@@ -145,7 +147,7 @@ public class EmailService(IConfiguration configuration, ILogger<EmailService> lo
             return;
         }
 
-        var fromEmail = configuration["Brevo:FromEmail"] ?? "noreply@bitego.com";
+        var fromEmail = configuration["Brevo:FromEmail"] ?? "bitego.oficial@gmail.com";
         var fromName = configuration["Brevo:FromName"] ?? "Bite&Go";
 
         var payload = new
