@@ -359,6 +359,7 @@ public class AuthService(
         {
             user.UserPasswordReset = new UserPasswordReset
             {
+                Id = UuidGenerator.GenerateUserId(),
                 UserId = user.Id,
                 PasswordResetToken = resetToken,
                 PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1)
