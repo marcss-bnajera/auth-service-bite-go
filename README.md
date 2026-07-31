@@ -78,7 +78,12 @@ Endpoints auxiliares:
   "iat": 1700000000,
   "exp": 1700003600,
   "iss": "BiteGoAuthService",
-  "aud": "BiteGoServices"
+  "aud": "BiteGoServices",
+  "email": "user@example.com",
+  "email_verified": "true",
+  "name": "Juan",
+  "surname": "Pérez",
+  "username": "juanp"
 }
 ```
 
